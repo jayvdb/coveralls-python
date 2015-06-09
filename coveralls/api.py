@@ -46,13 +46,27 @@ class Coveralls(object):
         if repo_token:
             self.config['repo_token'] = repo_token
 
+        is_travis = False
+        self.config['service_name'] = file_config.get('service_name', None)
+
         if os.environ.get('TRAVIS'):
             is_travis = True
-            self.config['service_name'] = file_config.get('service_name', None) or 'travis-ci'
+            if not self.config['service_name']:
+                self.config['service_name'] = 'travis-ci'
             self.config['service_job_id'] = os.environ.get('TRAVIS_JOB_ID')
-        else:
-            is_travis = False
-            self.config['service_name'] = file_config.get('service_name') or self.default_client
+        elif os.environ.get('APPVEYOR'):
+            if not self.config['service_name']:
+                self.config['service_name'] = 'appveyor'
+            self.config['service_job_id'] = os.environ.get('APPVEYOR_JOB_ID')
+            self.config['service_number'] = os.environ.get('APPVEYOR_BUILD_VERSION')
+            self.config['service_branch'] = os.environ.get('APPVEYOR_REPO_BRANCH')
+            repo_name = os.environ.get('APPVEYOR_REPO_NAME')
+            self.config['service_build_url'] = (
+                'https://ci.appveyor.com/project/%s/build/%s'
+                % (repo_name, self.config['service_number']))
+
+        if not self.config['service_name']:
+            self.config['service_name'] = self.default_client
 
         if os.environ.get('COVERALLS_REPO_TOKEN', None):
             self.config['repo_token'] = os.environ.get('COVERALLS_REPO_TOKEN')
@@ -183,8 +197,14 @@ class Coveralls(object):
                 }]
             }
         """
+        for name in ('TRAVIS_BRANCH', 'CIRCLE_BRANCH', 'CI_BRANCH',
+                     'APPVEYOR_REPO_BRANCH'):
+            branch_name = os.environ.get(name)
+            if branch_name:
+                break
+        else:
+            branch_name = run_command('git', 'rev-parse', '--abbrev-ref', 'HEAD').strip()
 
-        rev = run_command('git', 'rev-parse', '--abbrev-ref', 'HEAD').strip()
         git_info = {'git': {
             'head': {
                 'id': gitlog('%H'),
@@ -194,7 +214,7 @@ class Coveralls(object):
                 'committer_email': gitlog('%ce'),
                 'message': gitlog('%s'),
             },
-            'branch': os.environ.get('CIRCLE_BRANCH') or os.environ.get('CI_BRANCH') or os.environ.get('TRAVIS_BRANCH', rev),
+            'branch': branch_name,
             #origin	git@github.com:coagulant/coveralls-python.git (fetch)
             'remotes': [{'name': line.split()[0], 'url': line.split()[1]}
                         for line in run_command('git', 'remote', '-v').splitlines() if '(fetch)' in line]
