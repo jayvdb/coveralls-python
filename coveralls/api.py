@@ -60,7 +60,7 @@ class Coveralls(object):
             #self.config['service_job_id'] = os.environ.get('APPVEYOR_JOB_ID')
             self.config['service_number'] = os.environ.get('APPVEYOR_BUILD_VERSION')
             self.config['service_branch'] = os.environ.get('APPVEYOR_REPO_BRANCH')
-            self.config['service_pull_request'] = os.environ.get('APPVEYOR_PULL_REQUEST_NUMBER')
+            #self.config['service_pull_request'] = os.environ.get('APPVEYOR_PULL_REQUEST_NUMBER')
 
             repo_name = os.environ.get('APPVEYOR_REPO_NAME')
             self.config['service_build_url'] = (
