@@ -57,7 +57,7 @@ class Coveralls(object):
         elif os.environ.get('APPVEYOR'):
             if not self.config['service_name']:
                 self.config['service_name'] = 'appveyor'
-            self.config['service_job_id'] = os.environ.get('APPVEYOR_JOB_ID')
+            #self.config['service_job_id'] = os.environ.get('APPVEYOR_JOB_ID')
             self.config['service_number'] = os.environ.get('APPVEYOR_BUILD_VERSION')
             self.config['service_branch'] = os.environ.get('APPVEYOR_REPO_BRANCH')
             self.config['service_pull_request'] = os.environ.get('APPVEYOR_PULL_REQUEST_NUMBER')
